@@ -1,6 +1,7 @@
 # nvim-repl
 
 A lightweight Neovim plugin that opens a REPL (Read-Eval-Print Loop) for the currently attached LSP. 
+Why not using the plugins already available? Because this plugin is 66 lines of code with 30 that I already had for another plugin. It was easier to add the other 36 lines, rather than find and install a new plugin.
 
 ## Features
 
