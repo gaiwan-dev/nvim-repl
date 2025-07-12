@@ -3,24 +3,37 @@ local default_config = require("nvim-repl.config")
 local M = {}
 
 function M._open_repl_window(cmd)
-	local buffnr = vim.api.nvim_create_buf(true, true)
+	local position = M.config.window.position
 
-	-- local win_id = vim.api.nvim_open_win(buffnr, true, {
-	-- 	split = M.config.window.position,
-	-- 	win = 0,
-	-- 	style = "minimal",
-	-- })
-	-- if win_id == 0 then
-	-- 	error("Failed to open REPL window")
-	-- end
+	if position == "left" then
+		vim.cmd("topleft vsplit")
+	elseif position == "right" then
+		vim.cmd("botright vsplit")
+	elseif position == "top" then
+		vim.cmd("topleft split")
+	elseif position == "bottom" then
+		vim.cmd("botright split")
+	else
+		vim.cmd("vsplit")
+	end
 
-	vim.api.nvim_open_term(buffnr, {})
+	vim.cmd("enew")
+	local buff = vim.api.nvim_get_current_buf()
+	vim.fn.termopen({ cmd }, {
+		on_exit = function(_, code)
+			if code == 0 then
+				vim.api.nvim_buf_delete(buff, { force = true })
+			end
+		end,
+	})
+
+	vim.cmd("startinsert")
 end
 
 ---return the command to open the REPL for the language used on the LSP attached
----@return string?
-function M._get_cmd_by_lsp()
-	local lsps = vim.lsp.get_clients()
+---to the file currently opened.
+function M._get_cmd_by_lsp(buff)
+	local lsps = vim.lsp.get_clients({ bufnr = buff })
 	local lsp_configured = M.config.lsp
 
 	for _, lsp in ipairs(lsps) do
@@ -42,9 +55,11 @@ function M.setup(custom_config)
 end
 
 function M.execute()
-	local cmd = M._get_cmd_by_lsp()
+	local buff = vim.api.nvim_get_current_buf()
+	local cmd = M._get_cmd_by_lsp(buff)
 	if cmd ~= nil then
 		M._open_repl_window(cmd)
+		print(cmd)
 	end
 end
 
